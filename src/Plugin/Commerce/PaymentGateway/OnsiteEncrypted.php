@@ -18,8 +18,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Provides the On-site payment gateway.
  *
- * @todo Allow customisation of allowed credit card types.
- *
  * @CommercePaymentGateway(
  *   id = "onsite_encrypted",
  *   label = "On-site, encrypted",
@@ -28,9 +26,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *     "add-payment-method" = "Drupal\commerce_payment_onsite\PluginForm\PaymentMethodAddForm",
  *   },
  *   payment_method_types = {"credit_card_encrypted"},
- *   credit_card_types = {
- *     "amex", "mastercard", "visa",
- *   },
  * )
  */
 class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterface {
@@ -113,6 +108,8 @@ class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterfac
   public function defaultConfiguration() {
     return [
       'encryption_profile' => '',
+      // Empty array means allowing all supported card types.
+      'credit_card_types' => [],
     ] + parent::defaultConfiguration();
   }
 
@@ -140,6 +137,17 @@ class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterfac
       '#options' => $options,
       '#default_value' => $this->configuration['encryption_profile'],
       '#required' => TRUE,
+    ];
+
+    // Credit card types.
+    $credit_card_types = CreditCard::getTypeLabels();
+
+    $form['credit_card_types'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Accepted Credit Card Types'),
+      '#description' => $this->t('Select which credit card types are accepted by the gateway. Leave all types unchecked for accepting all supported types.'),
+      '#options' => $credit_card_types,
+      '#default_value' => $this->configuration['credit_card_types'],
     ];
 
     return $form;
@@ -176,7 +184,9 @@ class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterfac
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
+
       $this->configuration['encryption_profile'] = $values['encryption_profile'];
+      $this->configuration['credit_card_types'] = array_filter($values['credit_card_types']);
     }
   }
 
