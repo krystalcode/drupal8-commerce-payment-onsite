@@ -204,12 +204,28 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
    */
   protected function validateCreditCardForm(array &$element, FormStateInterface $form_state) {
     $values = $form_state->getValue($element['#parents']);
-    // @todo Validate that the credit card is of the accepted types.
     $card_type = CreditCard::detectType($values['number']);
     if (!$card_type) {
       $form_state->setError($element['number'], t('You have entered a credit card number of an unsupported card type.'));
       return;
     }
+
+    // Validate that the card type is one of the accepted by the payment
+    // gateway.
+    $payment_gateway = $this->entity->getPaymentGateway();
+    $payment_gateway_config = $payment_gateway->getPluginConfiguration();
+    $accepted_card_types = $payment_gateway_config['credit_card_types'];
+
+    if ($accepted_card_types && !in_array($card_type->getId(), $accepted_card_types)) {
+      $form_state->setError(
+        $element['number'],
+        t(
+          'The %card_type card type is not currently accepted.',
+          ['%card_type' => $card_type->getLabel(),]
+        )
+      );
+    }
+
     if (!CreditCard::validateNumber($values['number'], $card_type)) {
       $form_state->setError($element['number'], t('You have entered an invalid credit card number.'));
     }
