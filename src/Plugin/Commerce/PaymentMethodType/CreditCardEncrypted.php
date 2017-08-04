@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_payment_onsite_gateway\Plugin\Commerce\PaymentMethodType;
+namespace Drupal\commerce_payment_onsite\Plugin\Commerce\PaymentMethodType;
 
 use Drupal\commerce\BundleFieldDefinition;
 use Drupal\commerce_payment\CreditCard as CreditCardHelper;

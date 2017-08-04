@@ -8,7 +8,7 @@ use Drupal\Core\Entity\EntityInterface;
  * Encrypt credit card details before saving them to the database, for the
  * encrypted credit card payment method.
  */
-function commerce_payment_onsite_gateway_commerce_payment_method_presave(EntityInterface $entity) {
+function commerce_payment_onsite_commerce_payment_method_presave(EntityInterface $entity) {
   if ($entity->bundle() !== 'credit_card_encrypted') {
     return;
   }

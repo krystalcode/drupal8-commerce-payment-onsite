@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_payment_onsite_gateway\PluginForm;
+namespace Drupal\commerce_payment_onsite\PluginForm;
 
 use Drupal\commerce_payment\CreditCard;
 use Drupal\commerce_payment\PluginForm\PaymentGatewayFormBase;

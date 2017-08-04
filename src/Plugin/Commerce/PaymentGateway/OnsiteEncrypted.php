@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_payment_onsite_gateway\Plugin\Commerce\PaymentGateway;
+namespace Drupal\commerce_payment_onsite\Plugin\Commerce\PaymentGateway;
 
 use Drupal\commerce_payment\CreditCard;
 use Drupal\commerce_payment\PaymentMethodTypeManager;
@@ -25,7 +25,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   label = "On-site, encrypted",
  *   display_label = "Pay with Credit Card",
  *   forms = {
- *     "add-payment-method" = "Drupal\commerce_payment_onsite_gateway\PluginForm\PaymentMethodAddForm",
+ *     "add-payment-method" = "Drupal\commerce_payment_onsite\PluginForm\PaymentMethodAddForm",
  *   },
  *   payment_method_types = {"credit_card_encrypted"},
  *   credit_card_types = {
