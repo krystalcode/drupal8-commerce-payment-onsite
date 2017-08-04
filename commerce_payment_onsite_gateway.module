@@ -1,0 +1,36 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ *
+ * Encrypt credit card details before saving them to the database, for the
+ * encrypted credit card payment method.
+ */
+function commerce_payment_onsite_gateway_commerce_payment_method_presave(EntityInterface $entity) {
+  if ($entity->bundle() !== 'encrypted_credit_card') {
+    return;
+  }
+
+  // Get the encryption service so that we can encrypt the CC details before
+  // saving the payment method to the database.
+  $encryption_profile_manager = \Drupal::service('encrypt.encryption_profile.manager');
+  $encryption_profile = $encryption_profile_manager->getEncryptionProfile('cc_encryption');
+  $encrypt = \Drupal::service('encryption');
+
+  $fields = [
+    'encrypted_card_type',
+    'encrypted_card_number',
+    'encrypted_card_exp_month',
+    'encrypted_card_exp_year',
+    'encrypted_card_cvv',
+  ];
+
+  foreach ($fields as $field) {
+    $entity->set(
+      $field,
+      $encrypt->encrypt($entity->{$field}->value, $encryption_profile)
+    );
+  }
+}
