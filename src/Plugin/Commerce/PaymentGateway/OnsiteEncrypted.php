@@ -20,13 +20,13 @@ use Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\OnsitePaymentGatewayB
  *   forms = {
  *     "add-payment-method" = "Drupal\commerce_payment_onsite_gateway\PluginForm\PaymentMethodAddForm",
  *   },
- *   payment_method_types = {"encrypted_credit_card"},
+ *   payment_method_types = {"credit_card_encrypted"},
  *   credit_card_types = {
  *     "amex", "mastercard", "visa",
  *   },
  * )
  */
-class Onsite extends OnsitePaymentGatewayBase implements OnsiteInterface {
+class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterface {
 
   /**
    * {@inheritdoc}

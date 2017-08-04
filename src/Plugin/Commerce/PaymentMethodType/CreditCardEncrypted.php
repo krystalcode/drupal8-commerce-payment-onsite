@@ -11,12 +11,12 @@ use Drupal\commerce_payment\Plugin\Commerce\PaymentMethodType\PaymentMethodTypeB
  * Provides the encrypted credit card payment method type.
  *
  * @CommercePaymentMethodType(
- *   id = "encrypted_credit_card",
+ *   id = "credit_card_encrypted",
  *   label = @Translation("Credit card"),
  *   create_label = @Translation("New credit card"),
  * )
  */
-class EncryptedCreditCard extends PaymentMethodTypeBase {
+class CreditCardEncrypted extends PaymentMethodTypeBase {
 
   /**
    * {@inheritdoc}
