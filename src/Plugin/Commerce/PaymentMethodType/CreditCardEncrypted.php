@@ -22,19 +22,20 @@ class CreditCardEncrypted extends PaymentMethodTypeBase {
    * {@inheritdoc}
    */
   public function buildLabel(PaymentMethodInterface $payment_method) {
-    // Get the encryption service so that we can decrypt the CC details - here
-    // just for display purposes.
+    // Get the encryption service and profile so that we can decrypt the CC
+    // details - here just for display purposes.
     // @todo Inject encryption services
-    $encryption_profile_manager = \Drupal::service('encrypt.encryption_profile.manager');
-    // @todo Allow configuring which encryption profile to use
-    $encryption_profile = $encryption_profile_manager->getEncryptionProfile('cc_encryption');
-    $encrypt = \Drupal::service('encryption');
+    $encrypt_service = \Drupal::service('encryption');
+    $payment_gateway = $payment_method->getPaymentGateway();
+    $payment_gateway_config = $payment_gateway->getPluginConfiguration();
+    $encryption_profile = \Drupal::service('encrypt.encryption_profile.manager')
+      ->getEncryptionProfile($payment_gateway_config['encryption_profile']);
 
-    $decrypted_card_type = $encrypt->decrypt(
+    $decrypted_card_type = $encrypt_service->decrypt(
       $payment_method->encrypted_card_type->value,
       $encryption_profile
     );
-    $decrypted_card_number = $encrypt->decrypt(
+    $decrypted_card_number = $encrypt_service->decrypt(
       $payment_method->encrypted_card_number->value,
       $encryption_profile
     );

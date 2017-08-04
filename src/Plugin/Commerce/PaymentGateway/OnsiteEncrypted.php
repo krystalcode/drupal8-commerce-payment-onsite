@@ -3,10 +3,17 @@
 namespace Drupal\commerce_payment_onsite_gateway\Plugin\Commerce\PaymentGateway;
 
 use Drupal\commerce_payment\CreditCard;
+use Drupal\commerce_payment\PaymentMethodTypeManager;
+use Drupal\commerce_payment\PaymentTypeManager;
 use Drupal\commerce_payment\Entity\PaymentInterface;
 use Drupal\commerce_payment\Entity\PaymentMethodInterface;
 use Drupal\commerce_payment\Exception\HardDeclineException;
 use Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\OnsitePaymentGatewayBase;
+use Drupal\encrypt\EncryptionProfileManagerInterface;
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides the On-site payment gateway.
@@ -27,6 +34,151 @@ use Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\OnsitePaymentGatewayB
  * )
  */
 class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterface {
+
+  /**
+   * The encryption profile manager service.
+   *
+   * @var \Drupal\encrypt\EncryptionProfileManagerInterface
+   */
+  protected $encryption_profile_manager;
+
+  /**
+   * Constructs a new Onsite object.
+   *
+   * @param array $configuration
+   *   The plugin configuration, i.e. an array with configuration values keyed
+   *   by configuration option name.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   * @param \Drupal\commerce_payment\PaymentTypeManager $payment_type_manager
+   *   The payment type manager.
+   * @param \Drupal\commerce_payment\PaymentMethodTypeManager $payment_method_type_manager
+   *   The payment method type manager.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time.
+   * @param \Drupal\encrypt\EncryptionProfileManagerInterface $encryption_profile_manager
+   *   The encryption profile manager.
+   */
+  public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
+    EntityTypeManagerInterface $entity_type_manager,
+    PaymentTypeManager $payment_type_manager,
+    PaymentMethodTypeManager $payment_method_type_manager,
+    TimeInterface $time,
+    EncryptionProfileManagerInterface $encryption_profile_manager
+  ) {
+    parent::__construct(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $entity_type_manager,
+      $payment_type_manager,
+      $payment_method_type_manager,
+      $time
+    );
+
+    $this->encryption_profile_manager = $encryption_profile_manager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(
+    ContainerInterface $container,
+    array $configuration,
+    $plugin_id,
+    $plugin_definition
+  ) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('entity_type.manager'),
+      $container->get('plugin.manager.commerce_payment_type'),
+      $container->get('plugin.manager.commerce_payment_method_type'),
+      $container->get('datetime.time'),
+      $container->get('encrypt.encryption_profile.manager')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return [
+      'encryption_profile' => '',
+    ] + parent::defaultConfiguration();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(
+    array $form,
+    FormStateInterface $form_state
+  ) {
+    $form = parent::buildConfigurationForm($form, $form_state);
+
+    // Get all available encryption profiles.
+    $encryption_profiles = $this->encryption_profile_manager->getAllEncryptionProfiles();
+
+    $options = ['_none_' => $this->t('Select an Encryption Profile')];
+    foreach ($encryption_profiles as $key => $encryption_profile) {
+      $options[$key] = $encryption_profile->label();
+    }
+
+    $form['encryption_profile'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Encryption Profile'),
+      '#description' => $this->t('The encryption profile that will be used to encrypt the credit card details.'),
+      '#options' => $options,
+      '#default_value' => $this->configuration['encryption_profile'],
+      '#required' => TRUE,
+    ];
+
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateConfigurationForm(
+    array &$form,
+    FormStateInterface $form_state
+  ) {
+    $form = parent::buildConfigurationForm($form, $form_state);
+
+    $values = $form_state->getValue($form['#parents']);
+
+    // Encryption profile is mandatory.
+    if (empty($values['encryption_profile']) || $values['encryption_profile'] === '_none_') {
+      $form_state->setErrorByName(
+        'encryption_profile',
+        $this->t('An Encryption Profile must be selected.')
+      );
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(
+    array &$form,
+    FormStateInterface $form_state
+  ) {
+    parent::submitConfigurationForm($form, $form_state);
+
+    if (!$form_state->getErrors()) {
+      $values = $form_state->getValue($form['#parents']);
+      $this->configuration['encryption_profile'] = $values['encryption_profile'];
+    }
+  }
 
   /**
    * {@inheritdoc}

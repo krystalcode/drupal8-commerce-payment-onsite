@@ -9,16 +9,19 @@ use Drupal\Core\Entity\EntityInterface;
  * encrypted credit card payment method.
  */
 function commerce_payment_onsite_gateway_commerce_payment_method_presave(EntityInterface $entity) {
-  if ($entity->bundle() !== 'encrypted_credit_card') {
+  if ($entity->bundle() !== 'credit_card_encrypted') {
     return;
   }
 
-  // Get the encryption service so that we can encrypt the CC details before
-  // saving the payment method to the database.
-  $encryption_profile_manager = \Drupal::service('encrypt.encryption_profile.manager');
-  $encryption_profile = $encryption_profile_manager->getEncryptionProfile('cc_encryption');
+  // Get the encryption service and the encryption profile so that we can
+  // encrypt the CC details before saving the payment method to the database.
   $encrypt = \Drupal::service('encryption');
+  $payment_gateway = $entity->getPaymentGateway();
+  $payment_gateway_config = $payment_gateway->getPluginConfiguration();
+  $encryption_profile = \Drupal::service('encrypt.encryption_profile.manager')
+    ->getEncryptionProfile($payment_gateway_config['encryption_profile']);
 
+  // Encrypt all CC fields.
   $fields = [
     'encrypted_card_type',
     'encrypted_card_number',
