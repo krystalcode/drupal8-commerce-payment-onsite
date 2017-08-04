@@ -159,7 +159,7 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
     ];
     $element['number'] = [
       '#type' => 'textfield',
-      '#title' => t('Card number'),
+      '#title' => $this->t('Card number'),
       '#attributes' => ['autocomplete' => 'off'],
       '#required' => TRUE,
       '#maxlength' => 19,
@@ -173,7 +173,7 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
     ];
     $element['expiration']['month'] = [
       '#type' => 'select',
-      '#title' => t('Month'),
+      '#title' => $this->t('Month'),
       '#options' => $months,
       '#default_value' => date('m'),
       '#required' => $expiration_required,
@@ -185,14 +185,14 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
     ];
     $element['expiration']['year'] = [
       '#type' => 'select',
-      '#title' => t('Year'),
+      '#title' => $this->t('Year'),
       '#options' => $years,
       '#default_value' => $current_year_4,
       '#required' => $expiration_required,
     ];
     $element['security_code'] = [
       '#type' => 'textfield',
-      '#title' => t('CVV'),
+      '#title' => $this->t('CVV'),
       '#attributes' => ['autocomplete' => 'off'],
       '#required' => $cvv_required,
       '#maxlength' => 4,
@@ -214,7 +214,7 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
     $values = $form_state->getValue($element['#parents']);
     $card_type = CreditCard::detectType($values['number']);
     if (!$card_type) {
-      $form_state->setError($element['number'], t('You have entered a credit card number of an unsupported card type.'));
+      $form_state->setError($element['number'], $this->t('You have entered a credit card number of an unsupported card type.'));
       return;
     }
 
@@ -227,7 +227,7 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
     if ($accepted_card_types && !in_array($card_type->getId(), $accepted_card_types)) {
       $form_state->setError(
         $element['number'],
-        t(
+        $this->t(
           'The %card_type card type is not currently accepted.',
           ['%card_type' => $card_type->getLabel(),]
         )
@@ -236,7 +236,7 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
 
     // Card number always required and should be validated.
     if (!CreditCard::validateNumber($values['number'], $card_type)) {
-      $form_state->setError($element['number'], t('You have entered an invalid credit card number.'));
+      $form_state->setError($element['number'], $this->t('You have entered an invalid credit card number.'));
     }
 
     // Expiration and CVV should be validated only if required.
@@ -245,10 +245,10 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
     $cvv_required = empty($required_card_fields['cvv']) ? FALSE : TRUE;
 
     if ($expiration_required && !CreditCard::validateExpirationDate($values['expiration']['month'], $values['expiration']['year'])) {
-      $form_state->setError($element['expiration'], t('You have entered an expired credit card.'));
+      $form_state->setError($element['expiration'], $this->t('You have entered an expired credit card.'));
     }
     if ($cvv_required && !CreditCard::validateSecurityCode($values['security_code'], $card_type)) {
-      $form_state->setError($element['security_code'], t('You have entered an invalid CVV.'));
+      $form_state->setError($element['security_code'], $this->t('You have entered an invalid CVV.'));
     }
 
     // Persist the detected card type.

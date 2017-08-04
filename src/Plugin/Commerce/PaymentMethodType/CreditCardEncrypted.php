@@ -63,27 +63,27 @@ class CreditCardEncrypted extends PaymentMethodTypeBase {
     // module that provides that.
 
     $fields['encrypted_card_type'] = BundleFieldDefinition::create('string_long')
-      ->setLabel(t('Card type'))
-      ->setDescription(t('The credit card type.'))
+      ->setLabel($this->t('Card type'))
+      ->setDescription($this->t('The credit card type.'))
       ->setRequired(TRUE)
       ->setSetting('allowed_values_function', ['\Drupal\commerce_payment\CreditCard', 'getTypeLabels']);
 
     $fields['encrypted_card_number'] = BundleFieldDefinition::create('string_long')
-      ->setLabel(t('Card number'))
-      ->setDescription(t('The credit card number.'))
+      ->setLabel($this->t('Card number'))
+      ->setDescription($this->t('The credit card number.'))
       ->setRequired(TRUE);
 
     $fields['encrypted_card_exp_month'] = BundleFieldDefinition::create('string_long')
-      ->setLabel(t('Card expiration month'))
-      ->setDescription(t('The credit card expiration month.'));
+      ->setLabel($this->t('Card expiration month'))
+      ->setDescription($this->t('The credit card expiration month.'));
 
     $fields['encrypted_card_exp_year'] = BundleFieldDefinition::create('string_long')
-      ->setLabel(t('Card expiration year'))
-      ->setDescription(t('The credit card expiration year.'));
+      ->setLabel($this->t('Card expiration year'))
+      ->setDescription($this->t('The credit card expiration year.'));
 
     $fields['encrypted_card_cvv'] = BundleFieldDefinition::create('string_long')
-      ->setLabel(t('Card verification value'))
-      ->setDescription(t('The credit card verification value.'));
+      ->setLabel($this->t('Card verification value'))
+      ->setDescription($this->t('The credit card verification value.'));
 
     return $fields;
   }
