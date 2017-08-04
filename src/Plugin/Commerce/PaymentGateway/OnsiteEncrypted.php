@@ -110,6 +110,8 @@ class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterfac
       'encryption_profile' => '',
       // Empty array means allowing all supported card types.
       'credit_card_types' => [],
+      // Required card fields. Type and number are always required.
+      'credit_card_fields' => [],
     ] + parent::defaultConfiguration();
   }
 
@@ -150,6 +152,20 @@ class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterfac
       '#default_value' => $this->configuration['credit_card_types'],
     ];
 
+    // Credit card fields.
+    $credit_card_fields = [
+      'expiration' => 'Expiration date',
+      'cvv' => 'Card verification value'
+    ];
+
+    $form['credit_card_fields'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Required Credit Card Details'),
+      '#description' => $this->t('Select which credit card details are required by the gaeway - they usually depend on the accepted card types. The card number is always required.'),
+      '#options' => $credit_card_fields,
+      '#default_value' => $this->configuration['credit_card_fields'],
+    ];
+
     return $form;
   }
 
@@ -187,6 +203,7 @@ class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterfac
 
       $this->configuration['encryption_profile'] = $values['encryption_profile'];
       $this->configuration['credit_card_types'] = array_filter($values['credit_card_types']);
+      $this->configuration['credit_card_fields'] = array_filter($values['credit_card_fields']);
     }
   }
 
@@ -216,10 +233,14 @@ class OnsiteEncrypted extends OnsitePaymentGatewayBase implements OnsiteInterfac
   ) {
     // The expected keys are payment gateway specific and usually match the
     // PaymentMethodAddForm form elements. They are expected to be valid.
-    // @todod Allow customisation of the required CC fields.
     $required_keys = [
-      'type', 'number', 'expiration', 'security_code',
-    ];
+      'type', 'number',
+    ] + $this->configuration['credit_card_fields'];
+    // Temporary fix for difference in field name between form and
+    // configuration. The CVV field should be called cvv throughout.
+    if (isset($required_keys['cvv'])) {
+      $required_keys['cvv'] = 'security_code';
+    }
     foreach ($required_keys as $required_key) {
       if (empty($payment_details[$required_key])) {
         throw new \InvalidArgumentException(sprintf('$payment_details must contain the %s key.', $required_key));

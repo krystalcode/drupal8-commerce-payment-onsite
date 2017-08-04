@@ -143,6 +143,14 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
       $years[$current_year_4 + $i] = $current_year_2 + $i;
     }
 
+    // Get whether expiration and cvv are required from the payment gateway's
+    // configuration.
+    $payment_gateway = $this->entity->getPaymentGateway();
+    $payment_gateway_config = $payment_gateway->getPluginConfiguration();
+    $required_card_fields = $payment_gateway_config['credit_card_fields'];
+    $expiration_required = empty($required_card_fields['expiration']) ? FALSE : TRUE;
+    $cvv_required = empty($required_card_fields['cvv']) ? FALSE : TRUE;
+
     $element['#attributes']['class'][] = 'credit-card-form';
     // Placeholder for the detected card type. Set by validateCreditCardForm().
     $element['type'] = [
@@ -168,7 +176,7 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
       '#title' => t('Month'),
       '#options' => $months,
       '#default_value' => date('m'),
-      '#required' => TRUE,
+      '#required' => $expiration_required,
     ];
     $element['expiration']['divider'] = [
       '#type' => 'item',
@@ -180,13 +188,13 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
       '#title' => t('Year'),
       '#options' => $years,
       '#default_value' => $current_year_4,
-      '#required' => TRUE,
+      '#required' => $expiration_required,
     ];
     $element['security_code'] = [
       '#type' => 'textfield',
       '#title' => t('CVV'),
       '#attributes' => ['autocomplete' => 'off'],
-      '#required' => TRUE,
+      '#required' => $cvv_required,
       '#maxlength' => 4,
       '#size' => 4,
     ];
@@ -226,13 +234,20 @@ class PaymentMethodAddForm extends PaymentGatewayFormBase {
       );
     }
 
+    // Card number always required and should be validated.
     if (!CreditCard::validateNumber($values['number'], $card_type)) {
       $form_state->setError($element['number'], t('You have entered an invalid credit card number.'));
     }
-    if (!CreditCard::validateExpirationDate($values['expiration']['month'], $values['expiration']['year'])) {
+
+    // Expiration and CVV should be validated only if required.
+    $required_card_fields = $payment_gateway_config['credit_card_fields'];
+    $expiration_required = empty($required_card_fields['expiration']) ? FALSE : TRUE;
+    $cvv_required = empty($required_card_fields['cvv']) ? FALSE : TRUE;
+
+    if ($expiration_required && !CreditCard::validateExpirationDate($values['expiration']['month'], $values['expiration']['year'])) {
       $form_state->setError($element['expiration'], t('You have entered an expired credit card.'));
     }
-    if (!CreditCard::validateSecurityCode($values['security_code'], $card_type)) {
+    if ($cvv_required && !CreditCard::validateSecurityCode($values['security_code'], $card_type)) {
       $form_state->setError($element['security_code'], t('You have entered an invalid CVV.'));
     }
 
