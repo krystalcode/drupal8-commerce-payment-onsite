@@ -7,9 +7,12 @@ use Drupal\commerce_payment\PluginForm\PaymentGatewayFormBase;
 use Drupal\commerce_payment\Exception\DeclineException;
 use Drupal\commerce_payment\Exception\PaymentGatewayException;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\profile\Entity\Profile;
 
 class PaymentMethodAddForm extends PaymentGatewayFormBase {
+
+  use StringTranslationTrait;
 
   /**
    * The route match.
